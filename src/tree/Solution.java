@@ -1,8 +1,10 @@
 package tree;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Stack;
 
@@ -383,7 +385,7 @@ public class Solution {
     
     /*
      * 5.2.1 Construct Binary Tree from Preorder and Inorder Traversal
-     * 问题描述:根据前序、中序遍历构建二叉树
+     * 问题描述:根据前序、中序遍历构建二叉树(无重复元素)
      * 算法:一次读取前序节点,根据该节点划分中序,划分的左右区间为该节点的左右子树成员,依次类推
      * 时间复杂度O(n),空间复杂都O(1)
      */
@@ -423,7 +425,7 @@ public class Solution {
     
     /*
      * 5.2.2 Construct Binary Tree from Inorder and Postorder Traversal
-     * 问题描述:根据后序、中序构造二叉树
+     * 问题描述:根据后序、中序构造二叉树(无重复元素)
      * 算法:同上,将后序逆向扫描,并且递归时先右再左子树
      * 
      */
@@ -450,5 +452,107 @@ public class Solution {
     		root.left=t;
     		build(t,postorder,inorder,start,i-1);
     	}
+    }
+    
+    /*
+     * 5.3.1 Unique Binary Search Trees
+     * 问题描述:计算1~n的排序二叉树个数
+     * 算法:
+     * 1.n=0,f(0)=1
+     * 2.n=1,f(1)=1
+     * 3.n=2,f(2)=2
+     * 依次类推,以1~n中的每个顶点为根,可能的情况为以前后两部分为左右子树的排序二叉树可能的乘积,然后将各顶点情况相加
+     * 而上述前后两部份的可能情况,只与节点数目有关,
+     */
+    public int numTrees(int n) {
+    	if(n<0)
+    		return 0;
+    	else if(n<2)
+    		return 1;
+    	int[] M=new int[n+1];
+    	M[0]=1;
+    	M[1]=1;
+        return subTrees(M,n);
+    }
+    public int subTrees(int[] M,int n){
+    	for(int i=1;i<=n;i++){
+    		M[i-1]=M[i-1]==0?subTrees(M,i-1):M[i-1];
+    		M[n-i]=M[n-i]==0?subTrees(M,n-i):M[n-i];
+    		M[n]+=M[i-1]*M[n-i];
+    	}
+    	return M[n];
+    }
+    
+    /*
+     * 5.3.2 Unique Binary Search Trees II
+     * 
+     * 算法错误在,生成的序列可能生成重复的二叉树！！！！
+     */
+    public List<TreeNode> generateTrees(int n) {
+        List<TreeNode> tree=new LinkedList<TreeNode>();
+        if(n<0)
+        	return tree;
+        
+        return tree;
+    }
+    
+    /*
+     * 5.3.3 Validate Binary Search Tree
+     * 问题描述:判断二叉树是否为排序二叉树
+     * 算法:中序遍历,判断当前节点值是否大于之前节点值(注意初始化变量的处理)
+     * 时间复杂度O(N),空间复度O(1)
+     */
+    int perval;
+    boolean pervalinit;
+    public boolean isValidBST(TreeNode root) {
+    	if(root==null)
+    		return true;
+    	if(!isValidBST(root.left))
+    		return false;
+    	if(perval>=root.val && pervalinit)
+    		return false;
+    	else{
+    		perval=root.val;
+    		pervalinit=true;
+    	}
+    	if(!isValidBST(root.right))
+    		return false;
+    	return true;
+    }
+    
+    /*
+     * 5.3.4 Convert Sorted Array to Binary Search Tree
+     * 问题描述:根据排序的数组生成排序二叉树
+     * 算法:采用二分法截取数组,依次向下生成节点及处理其左右子树
+     *     取数组中点为根节点,划分排序的数组为左右子树,递归直至划分的子数组大小为0
+     * 时间复杂度O(N),空间复杂度O(N)
+     * 
+     */
+    public TreeNode sortedArrayToBST(int[] nums) {
+        if(null==nums||nums.length<1)
+        	return null;
+        TreeNode root=new TreeNode(Integer.MIN_VALUE);
+        buildBST(nums,0,nums.length-1,root);
+        return root.right;
+    }
+    public void buildBST(int[] nums,int s,int e,TreeNode root){
+    	if(s>e)
+    		return;
+    	int mid=(s+e)/2;
+    	TreeNode t=new TreeNode(nums[mid]);
+    	if(root.val>nums[mid])
+    		root.left=t;
+    	else
+    		root.right=t;
+    	buildBST(nums,s,mid-1,t);
+    	buildBST(nums,mid+1,e,t);
+    }
+    
+    /*
+     * 5.3.5 Convert Sorted List to Binary Search Tree
+     * 
+     */
+    public TreeNode sortedListToBST(ListNode head) {
+        
     }
 }
