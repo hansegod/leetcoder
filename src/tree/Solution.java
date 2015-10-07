@@ -364,7 +364,7 @@ public class Solution {
      * 注意:dummy.next=null指针要恢复
      */
     TreeLinkNode dummy=new TreeLinkNode(-1),t;
-    public void connect(TreeLinkNode root) {
+    public void connect_(TreeLinkNode root) {
         if(null==root)
         	return;
         t=dummy;
@@ -485,15 +485,32 @@ public class Solution {
     
     /*
      * 5.3.2 Unique Binary Search Trees II
-     * 
-     * 算法错误在,生成的序列可能生成重复的二叉树！！！！
+     * 问题描述:求1~n构成的所有排序二叉树
+     * 算法:依次选取元素为根,左右递归然后组合!!!!
+     * http://www.cnblogs.com/springfor/p/3884029.html
      */
     public List<TreeNode> generateTrees(int n) {
-        List<TreeNode> tree=new LinkedList<TreeNode>();
-        if(n<0)
-        	return tree;
-        
-        return tree;
+    	return buildBST(1,n);
+    }
+    private ArrayList<TreeNode> buildBST(int s,int e){
+        ArrayList<TreeNode> rst=new ArrayList<>();
+        if(s>e){
+            rst.add(null);
+            return rst;
+        }
+        for(int i=s;i<=e;i++){
+            ArrayList<TreeNode> lefts=buildBST(s,i-1);
+            ArrayList<TreeNode> rights=buildBST(i+1,e);
+            for(TreeNode left:lefts){
+                for(TreeNode right:rights){
+                    TreeNode node=new TreeNode(i);
+                    node.left=left;
+                    node.right=right;
+                    rst.add(node);
+                }
+            }
+        }
+        return rst;
     }
     
     /*
@@ -528,14 +545,14 @@ public class Solution {
      * 时间复杂度O(N),空间复杂度O(N)
      * 
      */
-    public TreeNode sortedArrayToBST(int[] nums) {
+    public TreeNode sortedArrayToBST_(int[] nums) {
         if(null==nums||nums.length<1)
         	return null;
         TreeNode root=new TreeNode(Integer.MIN_VALUE);
-        buildBST(nums,0,nums.length-1,root);
+        buildBST_(nums,0,nums.length-1,root);
         return root.right;
     }
-    public void buildBST(int[] nums,int s,int e,TreeNode root){
+    public void buildBST_(int[] nums,int s,int e,TreeNode root){
     	if(s>e)
     		return;
     	int mid=(s+e)/2;
@@ -544,15 +561,212 @@ public class Solution {
     		root.left=t;
     	else
     		root.right=t;
-    	buildBST(nums,s,mid-1,t);
-    	buildBST(nums,mid+1,e,t);
+    	buildBST_(nums,s,mid-1,t);
+    	buildBST_(nums,mid+1,e,t);
+    }
+    
+    public TreeNode sortedArrayToBST(int[] nums) {
+        if(null==nums||nums.length<1)
+        	return null;
+        return buildBST(nums,0,nums.length-1);
+    }
+    public TreeNode buildBST(int[] nums,int s,int e){
+    	if(s>e)
+    		return null;
+    	int mid=(s+e)/2;
+    	TreeNode root=new TreeNode(nums[mid]);
+    	root.left=buildBST(nums,s,mid-1);
+    	root.right=buildBST(nums,mid+1,e);
+    	return root;
     }
     
     /*
      * 5.3.5 Convert Sorted List to Binary Search Tree
+     * 问题描述:根据递增链表的数据构造排序二叉树
+     * 算法:中序递归!!!!
+     * http://blog.csdn.net/worldwindjp/article/details/39722643
+     * 时间复杂度O(N),空间复杂度O(1)
      * 
      */
-    public TreeNode sortedListToBST(ListNode head) {
-        
+    ListNode curHd = null;
+    public TreeNode sortedListToBST(ListNode head){  
+        if(head==null) 
+            return null;
+        curHd=head;  
+        int len=0;  
+        while(head!=null){  
+            len++;  
+            head = head.next;  
+        }
+        return buildTree(0,len-1);  
+    }
+    TreeNode buildTree(int s,int e){  
+        if(s>e) 
+            return null;
+        int mid=s+(e-s)/2;  
+        TreeNode left=buildTree(s,mid-1);  
+        TreeNode root=new TreeNode(curHd.val);  
+        root.left=left;  
+        curHd=curHd.next;  
+        root.right=buildTree(mid+1,e);  
+        return root;  
+    }
+    
+    /*
+     * 5.4.1 Minimum Depth of Binary Tree
+     * 问题描述:计算二叉树的最小深度
+     * 算法:广度优先搜索,采用null分割层次,并计数树的深度
+     * 时间复杂度O(n),空间复杂度O(n)
+     */
+    public int minDepth(TreeNode root) {
+        if(null==root)
+        	return 0;
+        int deep=1;
+        Queue<TreeNode> qt=new LinkedList<TreeNode>();
+        qt.add(root);
+        qt.add(null);
+        while(!qt.isEmpty()){
+        	TreeNode t=qt.poll();
+        	if(null==t){
+        		deep++;
+        		qt.add(null);
+        	}
+        	else if(t.left==null&&t.right==null)
+        		break;
+        	else{
+        		if(t.left!=null)
+        			qt.add(t.left);
+        		if(t.right!=null)
+        			qt.add(t.right);
+        	}	
+        }
+        return deep;
+    }
+    
+    /*
+     * 5.4.2 Maximum Depth of Binary Tree
+     * 问题描述:计算二叉树的最大深度
+     * 算法:递归求左右子树的最大深度取最大值加1
+     * 时间复杂度O(N),空间复杂度O(1)
+     */
+    public int maxDepth(TreeNode root) {
+        if(null==root)
+        	return 0;
+        return 1+Math.max(maxDepth(root.left), maxDepth(root.right));
+    }
+    
+    /*
+     * 5.4.3 Path Sum
+     * 问题描述:判断二叉树种是否存在路径使得路径和为所给值
+     * 算法:所给值减去节点值然后递归查找左右子树,直至查找到叶子节点,只要有一条路径即可
+     * 时间复杂度O(N),空间复杂度O(1)
+     */
+    public boolean hasPathSum(TreeNode root, int sum) {
+        if(null==root)
+        	return false;
+        else if(root.val==sum&&null==root.left&&null==root.right)
+        	return true;
+        return hasPathSum(root.left,sum-root.val)||hasPathSum(root.right,sum-root.val);
+    }
+    
+    /*
+     * 5.4.4 Path Sum II
+     * 问题描述:寻找二叉树种所有根到叶子为指定值的路径
+     * 算法:利用全局变量存储最终路径集和当前搜索路径,然后递归访问左右子树搜索判断路径是否符合要求
+     * 时间复杂度O(N),空间复杂度O(N)
+     * 注意对符合条件路径的处理:
+     * 1.将叶节点加入路径临时存储列表
+     * 2.复制路径并加入结果集合
+     * 3.将叶节点从临时路径中删除
+     */
+    List<List<Integer>> list=new ArrayList<List<Integer>>();
+    List<Integer> tmplist=new LinkedList<Integer>();
+    public List<List<Integer>> pathSum(TreeNode root, int sum) {
+    	if(null==root)
+    		return list;
+    	else if(root.val==sum&&root.left==null&&root.right==null){
+    		List<Integer> t=new LinkedList<Integer>();
+    		tmplist.add(root.val);
+    		t.addAll(tmplist);
+    		list.add(t);
+    		tmplist.remove(tmplist.size()-1);
+    		return list;
+    	}
+    	tmplist.add(root.val);
+    	pathSum(root.left,sum-root.val);
+    	pathSum(root.right,sum-root.val);
+    	tmplist.remove(tmplist.size()-1);
+    	return list;
+    }
+    
+    /*
+     * 5.4.5 Binary Tree Maximum Path Sum
+     * 问题描述:寻找二叉树中路径权值的最大值
+     * 算法:递归各节点,判断节点值,节点+左子树,节点+右子树(前面这三个最大值用于返回),左子树+节点+右子树最大值与全局最大比较
+     * 注意代码中最后一句返回,root.val + (Math.max(left,right)>0?Math.max(left,right):0)必须加括号
+     */
+    int MAX_PATH;
+    public int maxPathSum(TreeNode root) {
+    	MAX_PATH=Integer.MIN_VALUE;
+    	maxPath(root);
+        return MAX_PATH;
+    }
+    public int maxPath(TreeNode root){
+        if(null==root)
+        	return 0;
+        int left=maxPath(root.left);
+        int right=maxPath(root.right);
+        int sum=root.val+(left>0?left:0)+(right>0?right:0);
+        MAX_PATH=Math.max(MAX_PATH,sum);
+        return root.val + (Math.max(left,right)>0?Math.max(left,right):0);
+    }
+    
+    /*
+     * 5.4.6 Populating Next Right Pointers in Each Node
+     * 问题描述:将二叉树按层连接起来
+     * 算法:逐层遍历并连接下一层
+     * 时间复杂度O(longN),空间复杂度O(1)
+     */
+    public void connect(TreeLinkNode root) {
+    	if(null==root)
+    		return;
+        TreeLinkNode head=new TreeLinkNode(-1),t=head;
+        while(root!=null){
+        	if(root.left!=null){
+        		t.next=root.left;
+        		t=t.next;
+        	}
+        	if(root.right!=null){
+        		t.next=root.right;
+        		t=t.next;
+        	}
+        	root=root.next;
+        }
+        connect(head.next);
+    }
+    
+    /*
+     * 5.4.7 Sum Root to Leaf Numbers
+     * 问题描述:求二叉树所有根-叶路径长度和
+     * 算法:传递当前路径长并递归左右子树,为叶时计算当前路径长并加入总和
+     * 时间复杂度O(n),空间复杂度O(1)
+     */
+    int PATH_SUM;
+    public int sumNumbers(TreeNode root) {
+        PATH_SUM=0;
+        sumPath(root,0);
+        return PATH_SUM;
+    }
+    public void sumPath(TreeNode root,int sum){
+    	if(null==root)
+    		return;
+    	else if(root.left==null&&root.right==null){
+    		PATH_SUM+=sum*10+root.val;
+    		return;
+    	}
+    	else{
+    		sumPath(root.left,sum*10+root.val);
+    		sumPath(root.right,sum*10+root.val);
+    	}
     }
 }
